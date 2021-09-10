@@ -1,4 +1,3 @@
-
 import {
   ICreateRoomMessage,
   ExtWebSocket,
@@ -34,9 +33,9 @@ export function addMemberToRoom(event: MessageEvent, ws: ExtWebSocket, wss: ExtS
   wss.connections?.add(ws);
   if (ROOM_LIST[key]) {
     ROOM_LIST[key].members.push(message.data);
-    const res:ICreateRoomMessage = {
+    const res: ICreateRoomMessage = {
       method: 'createRoom',
-      data: ROOM_LIST[key]
+      data: ROOM_LIST[key],
     };
     ws.send(JSON.stringify(res));
     broadCast(wss, key, 'addMember', ROOM_LIST[key].members);
@@ -59,4 +58,3 @@ export function changeSettings(event: MessageEvent): void {
     ROOM_LIST[key].gameSettings = message.data;
   }
 }
-
