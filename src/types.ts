@@ -43,13 +43,13 @@ export interface IRoom {
 }
 
 export interface IMesssage {
-  method: keyof typeof WSMethods,
-  roomKey: string
+  method: keyof typeof WSMethods;
+  roomKey: string;
 }
 
 export interface IErrorMessage {
-  method: 'error'
-  data: string
+  method: 'error';
+  data: string;
 }
 
 export interface ICreateRoomMessage {
@@ -57,16 +57,16 @@ export interface ICreateRoomMessage {
   data: IRoom;
 }
 
-export interface IAddMemberToRoomMessage extends IMesssage{
+export interface IAddMemberToRoomMessage extends IMesssage {
   data: IUser;
-};
-export interface IResponseMembers extends IMesssage{
+}
+export interface IResponseMembers extends IMesssage {
   data: IUser[];
 }
-export interface IAddIssueToRoomMessage extends IMesssage{
+export interface IAddIssueToRoomMessage extends IMesssage {
   data: IIssue;
 }
-export interface IResponseIssues extends IMesssage{
+export interface IResponseIssues extends IMesssage {
   data: IIssue[];
 }
 export interface IChangeSettingsMessage extends IMesssage {

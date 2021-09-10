@@ -7,5 +7,5 @@ export const WSMethods = {
   removeIssue: 'removeIssue',
   changeSettings: 'changeSettings',
   roomKey: 'roomKey',
-  error: 'error'
+  error: 'error',
 };

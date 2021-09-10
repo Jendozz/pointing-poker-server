@@ -1,6 +1,6 @@
 import { WSMethods } from './../constants';
 
-import { ExtServer, ExtWebSocket,} from '../types';
+import { ExtServer, ExtWebSocket } from '../types';
 
 function broadCastMessage(connections: Set<ExtWebSocket>, roomKey: string, message: string) {
   connections.forEach(connection => {
@@ -14,7 +14,7 @@ export function broadCast<T>(wss: ExtServer, roomKey: string, method: keyof type
   if (wss.connections) {
     const message = {
       method: method,
-      data: data
+      data: data,
     };
     broadCastMessage(wss.connections, roomKey, JSON.stringify(message));
   }

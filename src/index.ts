@@ -45,13 +45,14 @@ wss.on('connection', (ws: ExtWebSocket) => {
         console.log('settings changed');
         break;
       }
-      default:
+      default: {
         const message: IErrorMessage = {
           method: 'error',
-          data : 'your message did not match api schema'
-        }
+          data: 'your message did not match api schema',
+        };
         ws.send(JSON.stringify(message));
         break;
+      }
     }
   };
 });
