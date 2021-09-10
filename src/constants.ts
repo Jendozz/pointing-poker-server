@@ -1,4 +1,4 @@
-export const WSReqMethods = {
+export const WSMethods = {
   connection: 'connecton',
   createRoom: 'createRoom',
   addMember: 'addMember',
@@ -6,11 +6,6 @@ export const WSReqMethods = {
   addIssue: 'addIssue',
   removeIssue: 'removeIssue',
   changeSettings: 'changeSettings',
-};
-
-export const WSResMethods = {
-  room: 'room',
   roomKey: 'roomKey',
-  members: 'members',
-  issues: 'issues',
+  error: 'error'
 };

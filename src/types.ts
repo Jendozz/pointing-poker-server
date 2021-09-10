@@ -1,3 +1,5 @@
+import { WSMethods } from './constants';
+
 import WebSocket, { Server } from 'ws';
 
 export interface ExtWebSocket extends WebSocket {
@@ -29,7 +31,7 @@ export interface IGameSettings {
   scoreType: string;
   scoreTypeShort: string;
   timer?: string;
-  cards: { value: string; name: string }[];
+  cards: { sequence: 'pow of 2' | 'fibonacci'; count: number };
 }
 
 export interface IRoom {
@@ -39,43 +41,36 @@ export interface IRoom {
   issues: IIssue[];
   gameSettings: IGameSettings;
 }
-export interface ICreateRoomMessage {
-  method: string;
-  room: IRoom;
-}
-export interface IResponseKeyMessage {
-  method: string;
-  roomKey: string;
+
+export interface IMesssage {
+  method: keyof typeof WSMethods,
+  roomKey: string
 }
 
-export interface IAddMemberToRoomMessage {
-  method: string;
-  value: {
-    roomKey: string;
-    user: IUser;
-  };
+export interface IErrorMessage {
+  method: 'error'
+  data: string
 }
-export interface IResponseMembers {
-  method: string;
-  members: IUser[];
+
+export interface ICreateRoomMessage {
+  method: keyof typeof WSMethods;
+  data: IRoom;
 }
-export interface IAddIssueToRoomMessage {
-  method: string;
-  value: {
-    roomKey: string;
-    issue: IIssue;
-  };
+
+export interface IAddMemberToRoomMessage extends IMesssage{
+  data: IUser;
+};
+export interface IResponseMembers extends IMesssage{
+  data: IUser[];
 }
-export interface IResponseIssues {
-  method: string;
-  issues: IIssue[];
+export interface IAddIssueToRoomMessage extends IMesssage{
+  data: IIssue;
 }
-export interface IChangeSettingsMessage {
-  method: string;
-  value: {
-    roomKey: string;
-    gameSettings: IGameSettings;
-  };
+export interface IResponseIssues extends IMesssage{
+  data: IIssue[];
+}
+export interface IChangeSettingsMessage extends IMesssage {
+  data: IGameSettings;
 }
 
 /*

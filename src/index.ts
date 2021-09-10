@@ -1,5 +1,5 @@
-import { ExtWebSocket, ExtServer } from './types';
-import { WSReqMethods } from './constants';
+import { ExtWebSocket, ExtServer, IErrorMessage } from './types';
+import { WSMethods } from './constants';
 import express from 'express';
 import { Request, Response } from 'express';
 import cors from 'cors';
@@ -23,30 +23,34 @@ wss.on('connection', (ws: ExtWebSocket) => {
   ws.onmessage = (event: MessageEvent) => {
     const { method } = JSON.parse(event.data.toString());
     switch (method) {
-      case WSReqMethods.connection:
+      case WSMethods.connection:
         break;
-      case WSReqMethods.createRoom: {
+      case WSMethods.createRoom: {
         createNewRoom(event, ws, wss);
         console.log(ROOM_LIST);
         break;
       }
-      case WSReqMethods.addMember: {
+      case WSMethods.addMember: {
         addMemberToRoom(event, ws, wss);
         console.log('added member');
         break;
       }
-      case WSReqMethods.addIssue: {
+      case WSMethods.addIssue: {
         addIssueToRoom(event, wss);
         console.log('added issue');
         break;
       }
-      case WSReqMethods.changeSettings: {
+      case WSMethods.changeSettings: {
         changeSettings(event);
         console.log('settings changed');
         break;
       }
       default:
-        ws.send(JSON.stringify({ error: 'your message did not match api schema' }));
+        const message: IErrorMessage = {
+          method: 'error',
+          data : 'your message did not match api schema'
+        }
+        ws.send(JSON.stringify(message));
         break;
     }
   };
