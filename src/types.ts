@@ -11,6 +11,7 @@ export interface ExtServer extends Server {
 }
 
 export interface IUser {
+  id: string;
   firstName: string;
   lastName?: string;
   jobPostion?: string;
@@ -19,6 +20,7 @@ export interface IUser {
 }
 
 export interface IIssue {
+  id: string;
   title: string;
   priority: string;
   link: string;
@@ -28,18 +30,32 @@ export interface IGameSettings {
   ScrumMasterAsPlayer: boolean;
   changingCardInRoundEnd: boolean;
   isTimerNeeded: boolean;
-  scoreType: string;
+  scoreType: keyof IScoreTypes;
   scoreTypeShort: string;
+  flipCardsWhenAllVoted: boolean;
+  addPlayerWhenGameStarted: boolean;
   timer?: string;
-  cards: { sequence: 'pow of 2' | 'fibonacci'; count: number };
+  cards: number;
+}
+
+export interface IScoreTypes {
+  'power of 2': number[];
+  'story point': number[];
+  fibonacci: number[];
+}
+export enum Routes {
+  lobby = 'lobby',
+  game = 'game',
+  result = 'result',
 }
 
 export interface IRoom {
-  roomKey?: string;
+  roomKey: string;
   scrumMaster: IUser;
   members: IUser[];
   issues: IIssue[];
   gameSettings: IGameSettings;
+  route: keyof typeof Routes;
 }
 
 export interface IMesssage {
@@ -71,6 +87,9 @@ export interface IResponseIssues extends IMesssage {
 }
 export interface IChangeSettingsMessage extends IMesssage {
   data: IGameSettings;
+}
+export interface IChangeRouteMessage extends IMesssage {
+  data: keyof typeof Routes;
 }
 
 /*
