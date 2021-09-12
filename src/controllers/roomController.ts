@@ -59,6 +59,7 @@ export function removeMemberFromRoom(event: MessageEvent, wss: ExtServer): void 
   if (ROOM_LIST[key]) {
     ROOM_LIST[key].members = ROOM_LIST[key].members.filter(member => member.id !== message.data.id);
     broadCast(wss, key, 'addMember', ROOM_LIST[key].members);
+    broadCast(wss, key, 'removeMember', message.data.id);
   }
 }
 
