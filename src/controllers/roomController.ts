@@ -1,3 +1,5 @@
+import { IChangeRouteMessage } from './../types';
+
 import {
   ICreateRoomMessage,
   ExtWebSocket,
@@ -26,6 +28,15 @@ export function createNewRoom(event: MessageEvent, ws: ExtWebSocket, wss: ExtSer
   ws.send(JSON.stringify(res));
 }
 
+export function removeRoom(event: MessageEvent, wss: ExtServer): void {
+  const message: IMesssage = JSON.parse(event.data.toString());
+  const key = message.roomKey;
+  if (ROOM_LIST[key]) {
+    delete ROOM_LIST[key];
+    broadCast(wss, key, 'removeRoom', {});
+  }
+}
+
 export function addMemberToRoom(event: MessageEvent, ws: ExtWebSocket, wss: ExtServer): void {
   const message: IAddMemberToRoomMessage = JSON.parse(event.data.toString());
   const key = message.roomKey;
@@ -42,11 +53,29 @@ export function addMemberToRoom(event: MessageEvent, ws: ExtWebSocket, wss: ExtS
   }
 }
 
+export function removeMemberFromRoom(event: MessageEvent, wss: ExtServer): void {
+  const message: IAddMemberToRoomMessage = JSON.parse(event.data.toString());
+  const key = message.roomKey;
+  if (ROOM_LIST[key]) {
+    ROOM_LIST[key].members = ROOM_LIST[key].members.filter(member => member.id !== message.data.id);
+    broadCast(wss, key, 'addMember', ROOM_LIST[key].members);
+  }
+}
+
 export function addIssueToRoom(event: MessageEvent, wss: ExtServer): void {
   const message: IAddIssueToRoomMessage = JSON.parse(event.data.toString());
   const key = message.roomKey;
   if (ROOM_LIST[key]) {
     ROOM_LIST[key].issues.push(message.data);
+    broadCast(wss, key, 'addIssue', ROOM_LIST[key].issues);
+  }
+}
+
+export function removeIssueFromRoom(event: MessageEvent, wss: ExtServer): void {
+  const message: IAddIssueToRoomMessage = JSON.parse(event.data.toString());
+  const key = message.roomKey;
+  if (ROOM_LIST[key]) {
+    ROOM_LIST[key].issues = ROOM_LIST[key].issues.filter(issue => issue.id !== message.data.id);
     broadCast(wss, key, 'addIssue', ROOM_LIST[key].issues);
   }
 }
@@ -57,4 +86,13 @@ export function changeSettings(event: MessageEvent): void {
   if (ROOM_LIST[key]) {
     ROOM_LIST[key].gameSettings = message.data;
   }
+}
+
+export function changeRoute(event: MessageEvent, wss: ExtServer): void {
+  const message: IChangeRouteMessage = JSON.parse(event.data.toString());
+  const key = message.roomKey;
+  if (ROOM_LIST[key]) {
+    ROOM_LIST[key].route = message.data;
+  }
+  broadCast(wss, key, 'changeRoute', ROOM_LIST[key].route);
 }

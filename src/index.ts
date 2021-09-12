@@ -6,7 +6,16 @@ import cors from 'cors';
 import http from 'http';
 import WebSocket from 'ws';
 import { MessageEvent } from 'ws';
-import { addIssueToRoom, addMemberToRoom, changeSettings, createNewRoom } from './controllers/roomController';
+import {
+  addIssueToRoom,
+  addMemberToRoom,
+  changeRoute,
+  changeSettings,
+  createNewRoom,
+  removeIssueFromRoom,
+  removeMemberFromRoom,
+  removeRoom,
+} from './controllers/roomController';
 import { ROOM_LIST } from './storage';
 
 const PORT = process.env.PORT || 5000;
@@ -30,9 +39,19 @@ wss.on('connection', (ws: ExtWebSocket) => {
         console.log(ROOM_LIST);
         break;
       }
+      case WSMethods.removeRoom: {
+        removeRoom(event, wss);
+        console.log('room removed');
+        break;
+      }
       case WSMethods.addMember: {
         addMemberToRoom(event, ws, wss);
         console.log('added member');
+        break;
+      }
+      case WSMethods.removeMember: {
+        removeMemberFromRoom(event, wss);
+        console.log('member removed');
         break;
       }
       case WSMethods.addIssue: {
@@ -40,9 +59,19 @@ wss.on('connection', (ws: ExtWebSocket) => {
         console.log('added issue');
         break;
       }
+      case WSMethods.removeIssue: {
+        removeIssueFromRoom(event, wss);
+        console.log('issue removed');
+        break;
+      }
       case WSMethods.changeSettings: {
         changeSettings(event);
         console.log('settings changed');
+        break;
+      }
+      case WSMethods.changeRoute: {
+        changeRoute(event, wss);
+        console.log('route changed');
         break;
       }
       default: {

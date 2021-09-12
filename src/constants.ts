@@ -1,6 +1,7 @@
 export const WSMethods = {
   connection: 'connecton',
   createRoom: 'createRoom',
+  removeRoom: 'removeRoom',
   addMember: 'addMember',
   removeMember: 'removeMember',
   addIssue: 'addIssue',
@@ -8,4 +9,5 @@ export const WSMethods = {
   changeSettings: 'changeSettings',
   roomKey: 'roomKey',
   error: 'error',
+  changeRoute: 'changeRoute',
 };
