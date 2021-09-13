@@ -1,4 +1,4 @@
-import { IChangeRouteMessage } from './../types';
+import { IChangeRouteMessage, IChangeIssueInRoomMessage } from './../types';
 
 import {
   ICreateRoomMessage,
@@ -69,6 +69,17 @@ export function addIssueToRoom(event: MessageEvent, wss: ExtServer): void {
   if (ROOM_LIST[key]) {
     ROOM_LIST[key].issues.push(message.data);
     broadCast(wss, key, 'addIssue', ROOM_LIST[key].issues);
+  }
+}
+export function changeIssueInRoom(event: MessageEvent, wss: ExtServer): void {
+  const message: IChangeIssueInRoomMessage = JSON.parse(event.data.toString());
+  const key = message.roomKey;
+  if (ROOM_LIST[key]) {
+    const index = ROOM_LIST[key].issues.findIndex(issue => issue.id === message.data.id);
+    if (typeof index === 'number') {
+      ROOM_LIST[key].issues[index] = message.data.issue;
+      broadCast(wss, key, 'addIssue', ROOM_LIST[key].issues);
+    }
   }
 }
 
