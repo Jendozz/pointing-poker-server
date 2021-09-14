@@ -9,6 +9,7 @@ import { MessageEvent } from 'ws';
 import {
   addIssueToRoom,
   addMemberToRoom,
+  changeIssueInRoom,
   changeRoute,
   changeSettings,
   createNewRoom,
@@ -57,6 +58,11 @@ wss.on('connection', (ws: ExtWebSocket) => {
       case WSMethods.addIssue: {
         addIssueToRoom(event, wss);
         console.log('added issue');
+        break;
+      }
+      case WSMethods.changeIssue: {
+        changeIssueInRoom(event, wss);
+        console.log('issue changed');
         break;
       }
       case WSMethods.removeIssue: {
