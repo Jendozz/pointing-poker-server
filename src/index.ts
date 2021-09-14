@@ -16,6 +16,7 @@ import {
   removeIssueFromRoom,
   removeMemberFromRoom,
   removeRoom,
+  startKickVoting,
 } from './controllers/roomController';
 import { ROOM_LIST } from './storage';
 
@@ -53,6 +54,11 @@ wss.on('connection', (ws: ExtWebSocket) => {
       case WSMethods.removeMember: {
         removeMemberFromRoom(event, wss);
         console.log('member removed');
+        break;
+      }
+      case WSMethods.kickVoting: {
+        startKickVoting(event, wss);
+        console.log('start voting');
         break;
       }
       case WSMethods.addIssue: {

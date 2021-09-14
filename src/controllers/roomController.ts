@@ -11,8 +11,10 @@ import {
 } from '../types';
 import { MessageEvent } from 'ws';
 
-import { ROOM_LIST } from '../storage';
+import { ROOM_LIST, VOTE_LIST } from '../storage';
 import { broadCast } from './broadCastController';
+import { resolveVoting } from '../helpers';
+import { VOTING_DELAY } from '../constants';
 
 export function createNewRoom(event: MessageEvent, ws: ExtWebSocket, wss: ExtServer): void {
   const message: ICreateRoomMessage = JSON.parse(event.data.toString());
@@ -60,6 +62,32 @@ export function removeMemberFromRoom(event: MessageEvent, wss: ExtServer): void 
     ROOM_LIST[key].members = ROOM_LIST[key].members.filter(member => member.id !== message.data.id);
     broadCast(wss, key, 'addMember', ROOM_LIST[key].members);
     broadCast(wss, key, 'removeMember', message.data.id);
+  }
+}
+
+export function startKickVoting(event: MessageEvent, wss: ExtServer): void {
+  const message: IAddMemberToRoomMessage = JSON.parse(event.data.toString());
+  const key = message.roomKey;
+  const getVoteResult = () => {
+    const verdict = resolveVoting(key);
+    if (verdict) {
+      removeMemberFromRoom(event, wss);
+      broadCast(wss, key, 'resetVoting', key);
+      // const voteIndex = VOTE_LIST.findIndex(voting => voting.roomKey === key);
+      // VOTE_LIST.splice(voteIndex, 1);
+    }
+  };
+
+  if (ROOM_LIST[key]) {
+    const isVotingStarted = VOTE_LIST.find(voting => voting.roomKey === key);
+    if (!isVotingStarted) {
+      VOTE_LIST.push({ roomKey: key, votes: [true] });
+      setTimeout(getVoteResult, VOTING_DELAY);
+      broadCast(wss, key, 'kickVoting', message.data);
+    } else {
+      VOTE_LIST.find(voting => voting.roomKey === key)?.votes.push(true);
+      getVoteResult();
+    }
   }
 }
 
