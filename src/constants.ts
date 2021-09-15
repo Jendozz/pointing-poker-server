@@ -11,8 +11,8 @@ export const WSMethods = {
   roomKey: 'roomKey',
   error: 'error',
   changeRoute: 'changeRoute',
-  kickVoting: 'kickVoting',
-  resetVoting: 'resetVoting',
+  startKickUserVoting: 'startKickUserVoting',
+  resetKickUserVoting: 'resetKickUserVoting',
 };
 
 export const VOTING_DELAY = 15000;

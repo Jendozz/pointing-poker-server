@@ -56,7 +56,7 @@ wss.on('connection', (ws: ExtWebSocket) => {
         console.log('member removed');
         break;
       }
-      case WSMethods.kickVoting: {
+      case WSMethods.startKickUserVoting: {
         startKickVoting(event, wss);
         console.log('start voting');
         break;

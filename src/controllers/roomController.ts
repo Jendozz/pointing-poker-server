@@ -79,7 +79,7 @@ export function startKickVoting(event: MessageEvent, wss: ExtServer): void {
       }
       if (deleteVoting) {
         KICK_VOTING_LIST.splice(voteIndex, 1);
-        broadCast(wss, key, 'resetVoting', key);
+        broadCast(wss, key, 'resetKickUserVoting', key);
       }
     };
     if (voteIndex < 0) {
@@ -87,7 +87,7 @@ export function startKickVoting(event: MessageEvent, wss: ExtServer): void {
       setTimeout(() => {
         getVoteResult(true);
       }, VOTING_DELAY);
-      broadCast(wss, key, 'kickVoting', message.data);
+      broadCast(wss, key, 'startKickUserVoting', message.data);
     } else if (!KICK_VOTING_LIST[voteIndex].isEnded) {
       KICK_VOTING_LIST.find(voting => voting.id === voteID)?.votes.push(true);
       getVoteResult(false);
