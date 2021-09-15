@@ -68,6 +68,12 @@ export interface IErrorMessage {
   data: string;
 }
 
+export interface IKickVoting {
+  id: string;
+  votes: boolean[];
+  isEnded: boolean;
+}
+
 export interface ICreateRoomMessage {
   method: keyof typeof WSMethods;
   data: IRoom;
