@@ -92,8 +92,11 @@ wss.on('connection', (ws: ExtWebSocket) => {
   };
 });
 
-app.get('/', (req: Request, res: Response): void => {
-  res.json({ result: 'hello' });
+app.post('/checkRoom', (req: Request, res: Response): void => {
+  const data = JSON.parse(JSON.stringify(req.body));
+  if (Object.prototype.hasOwnProperty.call(ROOM_LIST, data.roomKey)) {
+    res.status(200).send();
+  } else res.status(404).send();
 });
 
 server.listen(PORT, () => {
