@@ -16,6 +16,9 @@ import {
   removeIssueFromRoom,
   removeMemberFromRoom,
   removeRoom,
+  resetRound,
+  setActiveIssue,
+  setVoice,
   startKickVoting,
 } from './controllers/roomController';
 import { ROOM_LIST } from './storage';
@@ -23,7 +26,7 @@ import { ROOM_LIST } from './storage';
 const PORT = process.env.PORT || 5000;
 const app = express();
 const server = http.createServer(app);
-const wss: ExtServer = new WebSocket.Server({ server });
+export const wss: ExtServer = new WebSocket.Server({ server });
 wss.connections = new Set<ExtWebSocket>();
 
 app.use(cors());
@@ -42,7 +45,7 @@ wss.on('connection', (ws: ExtWebSocket) => {
         break;
       }
       case WSMethods.removeRoom: {
-        removeRoom(event, wss);
+        removeRoom(event);
         console.log('room removed');
         break;
       }
@@ -52,7 +55,7 @@ wss.on('connection', (ws: ExtWebSocket) => {
         break;
       }
       case WSMethods.removeMember: {
-        removeMemberFromRoom(event, wss);
+        removeMemberFromRoom(event);
         console.log('member removed');
         break;
       }
@@ -62,7 +65,7 @@ wss.on('connection', (ws: ExtWebSocket) => {
         break;
       }
       case WSMethods.addIssue: {
-        addIssueToRoom(event, wss);
+        addIssueToRoom(event);
         console.log('added issue');
         break;
       }
@@ -72,7 +75,7 @@ wss.on('connection', (ws: ExtWebSocket) => {
         break;
       }
       case WSMethods.removeIssue: {
-        removeIssueFromRoom(event, wss);
+        removeIssueFromRoom(event);
         console.log('issue removed');
         break;
       }
@@ -82,8 +85,24 @@ wss.on('connection', (ws: ExtWebSocket) => {
         break;
       }
       case WSMethods.changeRoute: {
-        changeRoute(event, wss);
+        changeRoute(event);
         console.log('route changed');
+        break;
+      }
+      case WSMethods.setActiveIssue: {
+        setActiveIssue(event);
+        console.log('set active Issue');
+        break;
+      }
+
+      case WSMethods.setVoice: {
+        setVoice(event);
+        console.log('set voice');
+        break;
+      }
+      case WSMethods.resetRound: {
+        resetRound(event);
+        console.log('reset Round');
         break;
       }
       default: {

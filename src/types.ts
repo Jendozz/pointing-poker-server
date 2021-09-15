@@ -56,6 +56,10 @@ export interface IRoom {
   issues: IIssue[];
   gameSettings: IGameSettings;
   route: keyof typeof Routes;
+  game: {
+    activeIssueId: string;
+    vote: { [key: string]: { userId: string; voice: number }[] };
+  };
 }
 
 export interface IMesssage {
@@ -112,5 +116,5 @@ export interface IChangeRouteMessage extends IMesssage {
   - remove member - удаляет пользователя на сервере и возвращает всем клиентам новый массив members.
   + add issue - создает issue на сервере и возвращает всем клиентам новый массив issues
   - remove issue - удаляет issue на сервере и возвращает всем клиентам новый массив issues
-  + change settings - принимает измененные настройки и сохраняет их на сервере 
+  + change settings - принимает измененные настройки и сохраняет их на сервере
   */
