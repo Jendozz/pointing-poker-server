@@ -1,6 +1,6 @@
-import { IChangeRouteMessage } from './../types';
-
 import {
+  IChangeRouteMessage, 
+  IChangeIssueInRoomMessage ,
   ICreateRoomMessage,
   ExtWebSocket,
   ExtServer,
@@ -9,10 +9,11 @@ import {
   IChangeSettingsMessage,
   IMesssage,
 } from '../types';
-
 import { MessageEvent } from 'ws';
-import { ROOM_LIST } from '../storage';
+import { ROOM_LIST, KICK_VOTING_LIST } from '../storage';
 import { broadCast } from './broadCastController';
+import { resolveVoting } from '../helpers';
+import { VOTING_DELAY } from '../constants';
 
 export function createNewRoom(event: MessageEvent, ws: ExtWebSocket, wss: ExtServer): void {
   const message: ICreateRoomMessage = JSON.parse(event.data.toString());
@@ -63,12 +64,53 @@ export function removeMemberFromRoom(event: MessageEvent): void {
   }
 }
 
+export function startKickVoting(event: MessageEvent, wss: ExtServer): void {
+  const message: IAddMemberToRoomMessage = JSON.parse(event.data.toString());
+  const key = message.roomKey;
+  const voteID = `${key}-${message.data.id}`;
+  if (ROOM_LIST[key]) {
+    const voteIndex = KICK_VOTING_LIST.findIndex(voting => voting.id === voteID);
+    const getVoteResult = (deleteVoting: boolean) => {
+      const verdict = resolveVoting(key, voteID);
+      if (verdict && !deleteVoting) {
+        removeMemberFromRoom(event, wss);
+        KICK_VOTING_LIST[voteIndex].isEnded = true;
+      }
+      if (deleteVoting) {
+        KICK_VOTING_LIST.splice(voteIndex, 1);
+        broadCast(wss, key, 'resetKickUserVoting', key);
+      }
+    };
+    if (voteIndex < 0) {
+      KICK_VOTING_LIST.push({ id: voteID, votes: [true], isEnded: false });
+      setTimeout(() => {
+        getVoteResult(true);
+      }, VOTING_DELAY);
+      broadCast(wss, key, 'startKickUserVoting', message.data);
+    } else if (!KICK_VOTING_LIST[voteIndex].isEnded) {
+      KICK_VOTING_LIST.find(voting => voting.id === voteID)?.votes.push(true);
+      getVoteResult(false);
+    }
+  }
+}
+
 export function addIssueToRoom(event: MessageEvent): void {
   const message: IAddIssueToRoomMessage = JSON.parse(event.data.toString());
   const key = message.roomKey;
   if (ROOM_LIST[key]) {
     ROOM_LIST[key].issues.push(message.data);
     broadCast(key, 'addIssue', ROOM_LIST[key].issues);
+  }
+}
+export function changeIssueInRoom(event: MessageEvent, wss: ExtServer): void {
+  const message: IChangeIssueInRoomMessage = JSON.parse(event.data.toString());
+  const key = message.roomKey;
+  if (ROOM_LIST[key]) {
+    const index = ROOM_LIST[key].issues.findIndex(issue => issue.id === message.data.id);
+    if (typeof index === 'number') {
+      ROOM_LIST[key].issues[index] = message.data.issue;
+      broadCast(wss, key, 'addIssue', ROOM_LIST[key].issues);
+    }
   }
 }
 

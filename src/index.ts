@@ -9,6 +9,7 @@ import { MessageEvent } from 'ws';
 import {
   addIssueToRoom,
   addMemberToRoom,
+  changeIssueInRoom,
   changeRoute,
   changeSettings,
   createNewRoom,
@@ -18,6 +19,7 @@ import {
   resetRound,
   setActiveIssue,
   setVoice,
+  startKickVoting,
 } from './controllers/roomController';
 import { ROOM_LIST } from './storage';
 
@@ -57,9 +59,19 @@ wss.on('connection', (ws: ExtWebSocket) => {
         console.log('member removed');
         break;
       }
+      case WSMethods.startKickUserVoting: {
+        startKickVoting(event, wss);
+        console.log('start voting');
+        break;
+      }
       case WSMethods.addIssue: {
         addIssueToRoom(event);
         console.log('added issue');
+        break;
+      }
+      case WSMethods.changeIssue: {
+        changeIssueInRoom(event, wss);
+        console.log('issue changed');
         break;
       }
       case WSMethods.removeIssue: {

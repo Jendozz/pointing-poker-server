@@ -5,6 +5,7 @@ export const WSMethods = {
   addMember: 'addMember',
   removeMember: 'removeMember',
   addIssue: 'addIssue',
+  changeIssue: 'changeIssue',
   removeIssue: 'removeIssue',
   changeSettings: 'changeSettings',
   roomKey: 'roomKey',
@@ -14,4 +15,9 @@ export const WSMethods = {
   setVoice: 'setVoice',
   resetRound: 'resetRound',
   updateGame: 'updateGame',
+  startKickUserVoting: 'startKickUserVoting',
+  resetKickUserVoting: 'resetKickUserVoting',
+
 };
+
+export const VOTING_DELAY = 15000;

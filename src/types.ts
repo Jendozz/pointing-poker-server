@@ -72,6 +72,12 @@ export interface IErrorMessage {
   data: string;
 }
 
+export interface IKickVoting {
+  id: string;
+  votes: boolean[];
+  isEnded: boolean;
+}
+
 export interface ICreateRoomMessage {
   method: keyof typeof WSMethods;
   data: IRoom;
@@ -85,6 +91,12 @@ export interface IResponseMembers extends IMesssage {
 }
 export interface IAddIssueToRoomMessage extends IMesssage {
   data: IIssue;
+}
+export interface IChangeIssueInRoomMessage extends IMesssage {
+  data: {
+    issue: IIssue;
+    id: string;
+  };
 }
 export interface IResponseIssues extends IMesssage {
   data: IIssue[];
