@@ -69,8 +69,9 @@ export interface IErrorMessage {
 }
 
 export interface IKickVoting {
-  roomKey: string;
+  id: string;
   votes: boolean[];
+  isEnded: boolean;
 }
 
 export interface ICreateRoomMessage {

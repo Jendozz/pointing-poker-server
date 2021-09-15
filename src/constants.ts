@@ -15,4 +15,4 @@ export const WSMethods = {
   resetVoting: 'resetVoting',
 };
 
-export const VOTING_DELAY = 20000;
+export const VOTING_DELAY = 15000;

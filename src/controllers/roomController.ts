@@ -11,7 +11,7 @@ import {
 } from '../types';
 import { MessageEvent } from 'ws';
 
-import { ROOM_LIST, VOTE_LIST } from '../storage';
+import { ROOM_LIST, KICK_VOTING_LIST } from '../storage';
 import { broadCast } from './broadCastController';
 import { resolveVoting } from '../helpers';
 import { VOTING_DELAY } from '../constants';
@@ -68,25 +68,29 @@ export function removeMemberFromRoom(event: MessageEvent, wss: ExtServer): void 
 export function startKickVoting(event: MessageEvent, wss: ExtServer): void {
   const message: IAddMemberToRoomMessage = JSON.parse(event.data.toString());
   const key = message.roomKey;
-  const getVoteResult = () => {
-    const verdict = resolveVoting(key);
-    if (verdict) {
-      removeMemberFromRoom(event, wss);
-      broadCast(wss, key, 'resetVoting', key);
-      // const voteIndex = VOTE_LIST.findIndex(voting => voting.roomKey === key);
-      // VOTE_LIST.splice(voteIndex, 1);
-    }
-  };
-
+  const voteID = `${key}-${message.data.id}`;
   if (ROOM_LIST[key]) {
-    const isVotingStarted = VOTE_LIST.find(voting => voting.roomKey === key);
-    if (!isVotingStarted) {
-      VOTE_LIST.push({ roomKey: key, votes: [true] });
-      setTimeout(getVoteResult, VOTING_DELAY);
+    const voteIndex = KICK_VOTING_LIST.findIndex(voting => voting.id === voteID);
+    const getVoteResult = (deleteVoting: boolean) => {
+      const verdict = resolveVoting(key, voteID);
+      if (verdict && !deleteVoting) {
+        removeMemberFromRoom(event, wss);
+        KICK_VOTING_LIST[voteIndex].isEnded = true;
+      }
+      if (deleteVoting) {
+        KICK_VOTING_LIST.splice(voteIndex, 1);
+        broadCast(wss, key, 'resetVoting', key);
+      }
+    };
+    if (voteIndex < 0) {
+      KICK_VOTING_LIST.push({ id: voteID, votes: [true], isEnded: false });
+      setTimeout(() => {
+        getVoteResult(true);
+      }, VOTING_DELAY);
       broadCast(wss, key, 'kickVoting', message.data);
-    } else {
-      VOTE_LIST.find(voting => voting.roomKey === key)?.votes.push(true);
-      getVoteResult();
+    } else if (!KICK_VOTING_LIST[voteIndex].isEnded) {
+      KICK_VOTING_LIST.find(voting => voting.id === voteID)?.votes.push(true);
+      getVoteResult(false);
     }
   }
 }
