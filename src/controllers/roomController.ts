@@ -1,6 +1,6 @@
 import {
-  IChangeRouteMessage, 
-  IChangeIssueInRoomMessage ,
+  IChangeRouteMessage,
+  IChangeIssueInRoomMessage,
   ICreateRoomMessage,
   ExtWebSocket,
   ExtServer,
@@ -73,12 +73,12 @@ export function startKickVoting(event: MessageEvent, wss: ExtServer): void {
     const getVoteResult = (deleteVoting: boolean) => {
       const verdict = resolveVoting(key, voteID);
       if (verdict && !deleteVoting) {
-        removeMemberFromRoom(event, wss);
+        removeMemberFromRoom(event);
         KICK_VOTING_LIST[voteIndex].isEnded = true;
       }
       if (deleteVoting) {
         KICK_VOTING_LIST.splice(voteIndex, 1);
-        broadCast(wss, key, 'resetKickUserVoting', key);
+        broadCast(key, 'resetKickUserVoting', key);
       }
     };
     if (voteIndex < 0) {
@@ -86,7 +86,7 @@ export function startKickVoting(event: MessageEvent, wss: ExtServer): void {
       setTimeout(() => {
         getVoteResult(true);
       }, VOTING_DELAY);
-      broadCast(wss, key, 'startKickUserVoting', message.data);
+      broadCast(key, 'startKickUserVoting', message.data);
     } else if (!KICK_VOTING_LIST[voteIndex].isEnded) {
       KICK_VOTING_LIST.find(voting => voting.id === voteID)?.votes.push(true);
       getVoteResult(false);
@@ -109,7 +109,7 @@ export function changeIssueInRoom(event: MessageEvent, wss: ExtServer): void {
     const index = ROOM_LIST[key].issues.findIndex(issue => issue.id === message.data.id);
     if (typeof index === 'number') {
       ROOM_LIST[key].issues[index] = message.data.issue;
-      broadCast(wss, key, 'addIssue', ROOM_LIST[key].issues);
+      broadCast(key, 'addIssue', ROOM_LIST[key].issues);
     }
   }
 }
