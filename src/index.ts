@@ -114,6 +114,7 @@ wss.on('connection', (ws: ExtWebSocket) => {
       case WSMethods.rejectLogin: {
         console.log('rejectLogin');
         break;
+      }
       case WSMethods.addChatMessage: {
         addChatMessageToRoom(event);
         console.log('message added');
