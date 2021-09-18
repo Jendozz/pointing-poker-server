@@ -21,6 +21,7 @@ export const WSMethods = {
   rejectLogin: 'rejectLogin',
   attachmentMemberRequest: 'attachmentMemberRequest',
   connectToRoom: 'connectToRoom',
+  addChatMessage: 'addChatMessage',
 };
 
 export const VOTING_DELAY = 15000;

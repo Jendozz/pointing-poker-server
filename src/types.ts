@@ -60,8 +60,14 @@ export interface IRoom {
     activeIssueId: string;
     vote: { [key: string]: { userId: string; voice: number }[] };
   };
+  chatMessages: IChatMessage[];
 }
 
+export interface IChatMessage {
+  user: IUser;
+  message: string;
+  date: number;
+}
 export interface IMesssage {
   method: keyof typeof WSMethods;
   roomKey: string;
@@ -106,6 +112,9 @@ export interface IChangeSettingsMessage extends IMesssage {
 }
 export interface IChangeRouteMessage extends IMesssage {
   data: keyof typeof Routes;
+}
+export interface IAddChatMessage extends IMesssage {
+  data: IChatMessage;
 }
 
 /*

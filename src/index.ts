@@ -7,6 +7,7 @@ import http from 'http';
 import WebSocket from 'ws';
 import { MessageEvent } from 'ws';
 import {
+  addChatMessageToRoom,
   addIssueToRoom,
   addMemberToRoom,
   askForJoinMember,
@@ -112,6 +113,10 @@ wss.on('connection', (ws: ExtWebSocket) => {
       }
       case WSMethods.rejectLogin: {
         console.log('rejectLogin');
+        break;
+      case WSMethods.addChatMessage: {
+        addChatMessageToRoom(event);
+        console.log('message added');
         break;
       }
       default: {

@@ -1,3 +1,4 @@
+import { IAddChatMessage } from './../types';
 import {
   IChangeRouteMessage,
   IChangeIssueInRoomMessage,
@@ -220,4 +221,13 @@ export function resetRound(event: MessageEvent): void {
   }: { roomKey: string; data: { issueId: string } } = JSON.parse(event.data.toString());
   ROOM_LIST[roomKey].game.vote[issueId] = [];
   broadCast(roomKey, 'updateGame', ROOM_LIST[roomKey].game);
+}
+
+export function addChatMessageToRoom(event: MessageEvent): void {
+  const message: IAddChatMessage = JSON.parse(event.data.toString());
+  const key = message.roomKey;
+  if (ROOM_LIST[key]) {
+    ROOM_LIST[key].chatMessages.push(message.data);
+    broadCast(key, 'addChatMessage', ROOM_LIST[key].chatMessages);
+  }
 }
