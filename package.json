@@ -4,7 +4,7 @@
   "description": "server for pointing-poker app",
   "main": "index.ts",
   "scripts": {
-    "build": "tsc && node dist/index.js",
+    "build": "tsc",
     "dev": "nodemon ./src/index.ts",
     "lint": "eslint --fix src"
   },
