@@ -9,6 +9,7 @@ import { MessageEvent } from 'ws';
 import {
   addIssueToRoom,
   addMemberToRoom,
+  askForJoinMember,
   changeIssueInRoom,
   changeRoute,
   changeSettings,
@@ -54,13 +55,18 @@ wss.on('connection', (ws: ExtWebSocket) => {
         console.log('added member');
         break;
       }
+      case WSMethods.connectToRoom: {
+        askForJoinMember(event, ws, wss);
+        console.log('connectToRoom');
+        break;
+      }
       case WSMethods.removeMember: {
         removeMemberFromRoom(event);
         console.log('member removed');
         break;
       }
       case WSMethods.startKickUserVoting: {
-        startKickVoting(event, wss);
+        startKickVoting(event);
         console.log('start voting');
         break;
       }
@@ -70,7 +76,7 @@ wss.on('connection', (ws: ExtWebSocket) => {
         break;
       }
       case WSMethods.changeIssue: {
-        changeIssueInRoom(event, wss);
+        changeIssueInRoom(event);
         console.log('issue changed');
         break;
       }
@@ -94,7 +100,6 @@ wss.on('connection', (ws: ExtWebSocket) => {
         console.log('set active Issue');
         break;
       }
-
       case WSMethods.setVoice: {
         setVoice(event);
         console.log('set voice');
@@ -103,6 +108,10 @@ wss.on('connection', (ws: ExtWebSocket) => {
       case WSMethods.resetRound: {
         resetRound(event);
         console.log('reset Round');
+        break;
+      }
+      case WSMethods.rejectLogin: {
+        console.log('rejectLogin');
         break;
       }
       default: {
