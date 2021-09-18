@@ -17,6 +17,7 @@ export const WSMethods = {
   updateGame: 'updateGame',
   startKickUserVoting: 'startKickUserVoting',
   resetKickUserVoting: 'resetKickUserVoting',
+  addChatMessage: 'addChatMessage',
 };
 
 export const VOTING_DELAY = 15000;

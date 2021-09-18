@@ -7,6 +7,7 @@ import http from 'http';
 import WebSocket from 'ws';
 import { MessageEvent } from 'ws';
 import {
+  addChatMessageToRoom,
   addIssueToRoom,
   addMemberToRoom,
   changeIssueInRoom,
@@ -103,6 +104,11 @@ wss.on('connection', (ws: ExtWebSocket) => {
       case WSMethods.resetRound: {
         resetRound(event);
         console.log('reset Round');
+        break;
+      }
+      case WSMethods.addChatMessage: {
+        addChatMessageToRoom(event);
+        console.log('message added');
         break;
       }
       default: {
