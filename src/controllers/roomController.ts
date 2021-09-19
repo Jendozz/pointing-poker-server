@@ -15,6 +15,7 @@ import { ROOM_LIST, KICK_VOTING_LIST } from '../storage';
 import { broadCast } from './broadCastController';
 import { createRoomOnClient, login, resolveVoting } from '../helpers';
 import { VOTING_DELAY } from '../constants';
+import { clearTimer, startTimer } from './timerController';
 
 export function createNewRoom(event: MessageEvent, ws: ExtWebSocket, wss: ExtServer): void {
   const message: ICreateRoomMessage = JSON.parse(event.data.toString());
@@ -37,6 +38,7 @@ export function removeRoom(event: MessageEvent): void {
   if (ROOM_LIST[key]) {
     delete ROOM_LIST[key];
     broadCast(key, 'removeRoom', {});
+    clearTimer(key);
   }
 }
 
@@ -182,6 +184,7 @@ export function changeRoute(event: MessageEvent): void {
     ROOM_LIST[key].route = message.data;
   }
   broadCast(key, 'changeRoute', ROOM_LIST[key].route);
+  clearTimer(key);
 }
 
 export function setActiveIssue(event: MessageEvent): void {
@@ -190,12 +193,16 @@ export function setActiveIssue(event: MessageEvent): void {
   if (ROOM_LIST[key]) {
     if (!ROOM_LIST[key].game.activeIssueId) {
       ROOM_LIST[key].game.activeIssueId = ROOM_LIST[key].issues[0]?.id;
+      clearTimer(key);
+      startTimer(key);
     } else {
       const index = ROOM_LIST[key].issues.findIndex(issue => issue.id === ROOM_LIST[key].game.activeIssueId);
       if (!ROOM_LIST[key].issues[index + 1]) {
         ROOM_LIST[key].route = 'result';
         broadCast(key, 'changeRoute', ROOM_LIST[key].route);
       } else {
+        clearTimer(key);
+        startTimer(key);
         ROOM_LIST[key].game.activeIssueId = ROOM_LIST[key].issues[index + 1]?.id;
       }
     }
@@ -210,7 +217,6 @@ export function setVoice(event: MessageEvent): void {
     data: { issueId, userId, voice },
   }: { roomKey: string; data: { issueId: string; userId: string; voice: number } } = JSON.parse(event.data.toString());
   ROOM_LIST[roomKey].game.vote[issueId].push({ userId: userId, voice: voice });
-  console.log(ROOM_LIST[roomKey].game);
   broadCast(roomKey, 'updateGame', ROOM_LIST[roomKey].game);
 }
 
@@ -220,7 +226,9 @@ export function resetRound(event: MessageEvent): void {
     data: { issueId },
   }: { roomKey: string; data: { issueId: string } } = JSON.parse(event.data.toString());
   ROOM_LIST[roomKey].game.vote[issueId] = [];
-  broadCast(roomKey, 'updateGame', ROOM_LIST[roomKey].game);
+  clearTimer(roomKey);
+  startTimer(roomKey);
+  //broadCast(roomKey, 'updateGame', ROOM_LIST[roomKey].game);
 }
 
 export function addChatMessageToRoom(event: MessageEvent): void {

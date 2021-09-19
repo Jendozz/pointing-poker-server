@@ -34,7 +34,7 @@ export interface IGameSettings {
   scoreTypeShort: string;
   flipCardsWhenAllVoted: boolean;
   addPlayerWhenGameStarted: boolean;
-  timer?: string;
+  timer: string;
   cards: number;
 }
 
@@ -59,6 +59,7 @@ export interface IRoom {
   game: {
     activeIssueId: string;
     vote: { [key: string]: { userId: string; voice: number }[] };
+    remainingRoundTime: string;
   };
   chatMessages: IChatMessage[];
 }
