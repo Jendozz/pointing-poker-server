@@ -13,7 +13,7 @@ import {
 import { MessageEvent } from 'ws';
 import { ROOM_LIST, KICK_VOTING_LIST } from '../storage';
 import { broadCast } from './broadCastController';
-import { resolveVoting } from '../helpers';
+import { createRoomOnClient, login, resolveVoting } from '../helpers';
 import { VOTING_DELAY } from '../constants';
 
 export function createNewRoom(event: MessageEvent, ws: ExtWebSocket, wss: ExtServer): void {
@@ -28,6 +28,7 @@ export function createNewRoom(event: MessageEvent, ws: ExtWebSocket, wss: ExtSer
     roomKey: key,
   };
   ws.send(JSON.stringify(res));
+  ws.send(JSON.stringify(login(key)));
 }
 
 export function removeRoom(event: MessageEvent): void {
@@ -46,12 +47,52 @@ export function addMemberToRoom(event: MessageEvent, ws: ExtWebSocket, wss: ExtS
   wss.connections?.add(ws);
   if (ROOM_LIST[key]) {
     ROOM_LIST[key].members.push(message.data);
-    const res: ICreateRoomMessage = {
-      method: 'createRoom',
-      data: ROOM_LIST[key],
-    };
-    ws.send(JSON.stringify(res));
     broadCast(key, 'addMember', ROOM_LIST[key].members);
+  }
+}
+
+function waitAnswerFromScrumMaster(
+  ws: ExtWebSocket,
+  connection: ExtWebSocket,
+  event: MessageEvent,
+  wss: ExtServer,
+  waitingEvent: string,
+) {
+  const message: IAddMemberToRoomMessage = JSON.parse(event.data.toString());
+  const key = message.roomKey;
+  ws.id = key;
+  wss.connections?.add(ws);
+  const handleEvent = (e: MessageEvent) => {
+    const answer: IAddMemberToRoomMessage = JSON.parse(e.data.toString());
+    if (answer.method === waitingEvent && answer.data.id === message.data.id) {
+      createRoomOnClient(key, ws);
+      broadCast(key, 'addMember', ROOM_LIST[key].members);
+      ws.send(JSON.stringify(login(key)));
+      connection.removeEventListener('message', handleEvent);
+    }
+    if (answer.method === 'rejectLogin' && answer.data.id === message.data.id) {
+      ws.send(JSON.stringify(login('')));
+      connection.removeEventListener('message', handleEvent);
+    }
+  };
+  connection.addEventListener('message', handleEvent);
+}
+
+export function askForJoinMember(event: MessageEvent, ws: ExtWebSocket, wss: ExtServer): void {
+  const message: IAddMemberToRoomMessage = JSON.parse(event.data.toString());
+  const key = message.roomKey;
+  if (ROOM_LIST[key]) {
+    if (!ROOM_LIST[key].gameSettings.addPlayerWhenGameStarted && ROOM_LIST[key].route === 'game') {
+      wss.connections?.forEach(CONNECTION => {
+        if (CONNECTION.id === key) {
+          waitAnswerFromScrumMaster(ws, CONNECTION, event, wss, 'addMember');
+        }
+      });
+      broadCast(key, 'attachmentMemberRequest', message.data);
+    } else {
+      addMemberToRoom(event, ws, wss);
+      createRoomOnClient(key, ws);
+    }
   }
 }
 
@@ -65,20 +106,21 @@ export function removeMemberFromRoom(event: MessageEvent): void {
   }
 }
 
-export function startKickVoting(event: MessageEvent, wss: ExtServer): void {
+export function startKickVoting(event: MessageEvent): void {
   const message: IAddMemberToRoomMessage = JSON.parse(event.data.toString());
   const key = message.roomKey;
   const voteID = `${key}-${message.data.id}`;
   if (ROOM_LIST[key]) {
     const voteIndex = KICK_VOTING_LIST.findIndex(voting => voting.id === voteID);
     const getVoteResult = (deleteVoting: boolean) => {
+      const index = KICK_VOTING_LIST.findIndex(voting => voting.id === voteID);
       const verdict = resolveVoting(key, voteID);
-      if (verdict && !deleteVoting) {
+      if (verdict) {
         removeMemberFromRoom(event);
-        KICK_VOTING_LIST[voteIndex].isEnded = true;
+        KICK_VOTING_LIST[index].isEnded = true;
       }
       if (deleteVoting) {
-        KICK_VOTING_LIST.splice(voteIndex, 1);
+        KICK_VOTING_LIST.splice(index, 1);
         broadCast(key, 'resetKickUserVoting', key);
       }
     };
@@ -89,7 +131,7 @@ export function startKickVoting(event: MessageEvent, wss: ExtServer): void {
       }, VOTING_DELAY);
       broadCast(key, 'startKickUserVoting', message.data);
     } else if (!KICK_VOTING_LIST[voteIndex].isEnded) {
-      KICK_VOTING_LIST.find(voting => voting.id === voteID)?.votes.push(true);
+      KICK_VOTING_LIST[voteIndex].votes.push(true);
       getVoteResult(false);
     }
   }
@@ -103,7 +145,7 @@ export function addIssueToRoom(event: MessageEvent): void {
     broadCast(key, 'addIssue', ROOM_LIST[key].issues);
   }
 }
-export function changeIssueInRoom(event: MessageEvent, wss: ExtServer): void {
+export function changeIssueInRoom(event: MessageEvent): void {
   const message: IChangeIssueInRoomMessage = JSON.parse(event.data.toString());
   const key = message.roomKey;
   if (ROOM_LIST[key]) {
@@ -127,8 +169,6 @@ export function removeIssueFromRoom(event: MessageEvent): void {
 export function changeSettings(event: MessageEvent): void {
   const message: IChangeSettingsMessage = JSON.parse(event.data.toString());
   const key = message.roomKey;
-  console.log(message);
-
   if (ROOM_LIST[key]) {
     ROOM_LIST[key].gameSettings = message.data;
   }
