@@ -216,7 +216,14 @@ export function setVoice(event: MessageEvent): void {
     roomKey,
     data: { issueId, userId, voice },
   }: { roomKey: string; data: { issueId: string; userId: string; voice: number } } = JSON.parse(event.data.toString());
-  ROOM_LIST[roomKey].game.vote[issueId].push({ userId: userId, voice: voice });
+  const votedIndex = ROOM_LIST[roomKey].game.vote[issueId].findIndex(vote => {
+    return vote.userId === userId;
+  });
+  if (votedIndex == -1) {
+    ROOM_LIST[roomKey].game.vote[issueId].push({ userId: userId, voice: voice });
+  } else {
+    ROOM_LIST[roomKey].game.vote[issueId][votedIndex].voice = voice;
+  }
   broadCast(roomKey, 'updateGame', ROOM_LIST[roomKey].game);
 }
 
