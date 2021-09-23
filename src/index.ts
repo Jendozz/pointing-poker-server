@@ -120,6 +120,10 @@ wss.on('connection', (ws: ExtWebSocket) => {
         console.log('message added');
         break;
       }
+      case WSMethods.reconnect: {
+        console.log(`ws from room ${ws.id} reconnected`);
+        break;
+      }
       default: {
         const message: IErrorMessage = {
           method: 'error',
