@@ -22,6 +22,7 @@ export const WSMethods = {
   attachmentMemberRequest: 'attachmentMemberRequest',
   connectToRoom: 'connectToRoom',
   addChatMessage: 'addChatMessage',
+  reconnect: 'reconnect',
 };
 
 export const VOTING_DELAY = 15000;
