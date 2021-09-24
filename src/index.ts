@@ -15,6 +15,7 @@ import {
   changeRoute,
   changeSettings,
   createNewRoom,
+  disconnectHandler,
   removeIssueFromRoom,
   removeMemberFromRoom,
   removeRoom,
@@ -134,6 +135,10 @@ wss.on('connection', (ws: ExtWebSocket) => {
       }
     }
   };
+  ws.on('close', () => {
+    disconnectHandler(ws, wss);
+    console.log(`User ${ws.userid} disconnected`);
+  });
 });
 
 app.post('/checkRoom', (req: Request, res: Response): void => {
