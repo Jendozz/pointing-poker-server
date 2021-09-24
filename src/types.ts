@@ -4,6 +4,7 @@ import WebSocket, { Server } from 'ws';
 
 export interface ExtWebSocket extends WebSocket {
   id: string;
+  userid: string;
 }
 
 export interface ExtServer extends Server {
@@ -44,6 +45,7 @@ export interface IScoreTypes {
   fibonacci: number[];
 }
 export enum Routes {
+  firstPage = 'firstPage',
   lobby = 'lobby',
   game = 'game',
   result = 'result',
@@ -117,14 +119,3 @@ export interface IChangeRouteMessage extends IMesssage {
 export interface IAddChatMessage extends IMesssage {
   data: IChatMessage;
 }
-
-/*
-  + create lobby - создает лобби, генерирует roomKey, записывает юзера создавшего лобби как скрам мастера и возвращает
-    roomKey на клинет скрам мастера
-  + add member - добавляет пользователя на сервере, возвращает данные о комнате этому пользователю
-    а всем остальным возвращает новый массив members.
-  - remove member - удаляет пользователя на сервере и возвращает всем клиентам новый массив members.
-  + add issue - создает issue на сервере и возвращает всем клиентам новый массив issues
-  - remove issue - удаляет issue на сервере и возвращает всем клиентам новый массив issues
-  + change settings - принимает измененные настройки и сохраняет их на сервере
-  */

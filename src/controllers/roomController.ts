@@ -1,5 +1,5 @@
-import { IAddChatMessage } from './../types';
 import {
+  IAddChatMessage,
   IChangeRouteMessage,
   IChangeIssueInRoomMessage,
   ICreateRoomMessage,
@@ -13,7 +13,14 @@ import {
 import { MessageEvent } from 'ws';
 import { ROOM_LIST, KICK_VOTING_LIST } from '../storage';
 import { broadCast } from './broadCastController';
-import { createRoomOnClient, login, resolveVoting } from '../helpers';
+import {
+  createRoomOnClient,
+  createRouteMessage,
+  login,
+  RemoveRoomFromConnections,
+  RemoveWSFromConnections,
+  resolveVoting,
+} from '../helpers';
 import { VOTING_DELAY } from '../constants';
 import { clearTimer, startTimer } from './timerController';
 
@@ -22,14 +29,17 @@ export function createNewRoom(event: MessageEvent, ws: ExtWebSocket, wss: ExtSer
   const key = String(Date.now());
   message.data.roomKey = key;
   ws.id = key;
+  ws.userid = message.data.scrumMaster.id;
   wss.connections?.add(ws);
   ROOM_LIST[key] = message.data;
+  ROOM_LIST[key].route = 'lobby';
   const res: IMesssage = {
     method: 'roomKey',
     roomKey: key,
   };
   ws.send(JSON.stringify(res));
   ws.send(JSON.stringify(login(key)));
+  ws.send(createRouteMessage('lobby', key));
 }
 
 export function removeRoom(event: MessageEvent): void {
@@ -46,6 +56,7 @@ export function addMemberToRoom(event: MessageEvent, ws: ExtWebSocket, wss: ExtS
   const message: IAddMemberToRoomMessage = JSON.parse(event.data.toString());
   const key = message.roomKey;
   ws.id = key;
+  ws.userid = message.data.id;
   wss.connections?.add(ws);
   if (ROOM_LIST[key]) {
     ROOM_LIST[key].members.push(message.data);
@@ -244,5 +255,25 @@ export function addChatMessageToRoom(event: MessageEvent): void {
   if (ROOM_LIST[key]) {
     ROOM_LIST[key].chatMessages.push(message.data);
     broadCast(key, 'addChatMessage', ROOM_LIST[key].chatMessages);
+  }
+}
+
+export function disconnectHandler(ws: ExtWebSocket, wss: ExtServer): void {
+  if (ROOM_LIST[ws.id]) {
+    if (ROOM_LIST[ws.id].scrumMaster.id === ws.userid) {
+      delete ROOM_LIST[ws.id];
+      broadCast(ws.id, 'removeRoom', {});
+      clearTimer(ws.id);
+      if (wss.connections) {
+        RemoveRoomFromConnections(wss.connections, ws.id);
+      }
+    } else {
+      ROOM_LIST[ws.id].members = ROOM_LIST[ws.id].members.filter(member => member.id !== ws.userid);
+      broadCast(ws.id, 'addMember', ROOM_LIST[ws.id].members);
+      broadCast(ws.id, 'removeMember', ws.userid);
+      if (wss.connections) {
+        RemoveWSFromConnections(wss.connections, ws.userid);
+      }
+    }
   }
 }
