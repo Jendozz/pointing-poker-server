@@ -243,19 +243,21 @@ export function setVoice(event: MessageEvent): void {
   const votedIndex = ROOM_LIST[roomKey].game.vote[issueId].findIndex(vote => {
     return vote.userId === userId;
   });
+  const { 
+    members,
+    game, 
+    gameSettings: {flipCardsWhenAllVoted, ScrumMasterAsPlayer}
+  } = ROOM_LIST[roomKey]
   if (votedIndex == -1) {
-    ROOM_LIST[roomKey].game.vote[issueId].push({ userId: userId, voice: voice });
-    if (
-      ROOM_LIST[roomKey].gameSettings.flipCardsWhenAllVoted &&
-      ((ROOM_LIST[roomKey].gameSettings.ScrumMasterAsPlayer &&
-        ROOM_LIST[roomKey].game.vote[issueId].length === ROOM_LIST[roomKey].members.length + 1) ||
-        (!ROOM_LIST[roomKey].gameSettings.ScrumMasterAsPlayer &&
-          ROOM_LIST[roomKey].game.vote[issueId].length === ROOM_LIST[roomKey].members.length))
+    game.vote[issueId].push({ userId: userId, voice: voice });
+    if (flipCardsWhenAllVoted &&
+      ((ScrumMasterAsPlayer && game.vote[issueId].length === members.length + 1) ||
+        (!ScrumMasterAsPlayer && game.vote[issueId].length === members.length))
     ) {
-      ROOM_LIST[roomKey].game.cardsIsFlipped = true;
+      game.cardsIsFlipped = true;
     }
   } else {
-    ROOM_LIST[roomKey].game.vote[issueId][votedIndex].voice = voice;
+    game.vote[issueId][votedIndex].voice = voice;
   }
   broadCast(roomKey, 'updateGame', ROOM_LIST[roomKey].game);
 }
@@ -272,7 +274,7 @@ export function resetRound(event: MessageEvent): void {
   }
   clearTimer(roomKey);
   startTimer(roomKey);
-  //broadCast(roomKey, 'updateGame', ROOM_LIST[roomKey].game);
+  broadCast(roomKey, 'updateGame', ROOM_LIST[roomKey].game);
 }
 
 export function addChatMessageToRoom(event: MessageEvent): void {
