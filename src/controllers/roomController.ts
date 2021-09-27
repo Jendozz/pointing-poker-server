@@ -243,14 +243,15 @@ export function setVoice(event: MessageEvent): void {
   const votedIndex = ROOM_LIST[roomKey].game.vote[issueId].findIndex(vote => {
     return vote.userId === userId;
   });
-  const { 
+  const {
     members,
-    game, 
-    gameSettings: {flipCardsWhenAllVoted, ScrumMasterAsPlayer}
-  } = ROOM_LIST[roomKey]
+    game,
+    gameSettings: { flipCardsWhenAllVoted, ScrumMasterAsPlayer },
+  } = ROOM_LIST[roomKey];
   if (votedIndex == -1) {
     game.vote[issueId].push({ userId: userId, voice: voice });
-    if (flipCardsWhenAllVoted &&
+    if (
+      flipCardsWhenAllVoted &&
       ((ScrumMasterAsPlayer && game.vote[issueId].length === members.length + 1) ||
         (!ScrumMasterAsPlayer && game.vote[issueId].length === members.length))
     ) {
@@ -268,9 +269,10 @@ export function resetRound(event: MessageEvent): void {
     data: { issueId },
   }: { roomKey: string; data: { issueId: string } } = JSON.parse(event.data.toString());
   if (ROOM_LIST[roomKey]) {
-    ROOM_LIST[roomKey].game.vote[issueId] = [];
-    ROOM_LIST[roomKey].game.remainingRoundTime = ROOM_LIST[roomKey].gameSettings.timer;
-    ROOM_LIST[roomKey].game.cardsIsFlipped = false;
+    const { game } = ROOM_LIST[roomKey];
+    game.vote[issueId] = [];
+    game.remainingRoundTime = ROOM_LIST[roomKey].gameSettings.timer;
+    game.cardsIsFlipped = false;
   }
   clearTimer(roomKey);
   startTimer(roomKey);
