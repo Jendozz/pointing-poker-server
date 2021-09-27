@@ -23,6 +23,7 @@ import {
   setActiveIssue,
   setVoice,
   startKickVoting,
+  updateGame,
 } from './controllers/roomController';
 import { ROOM_LIST } from './storage';
 
@@ -95,6 +96,11 @@ wss.on('connection', (ws: ExtWebSocket) => {
       case WSMethods.changeRoute: {
         changeRoute(event);
         console.log('route changed');
+        break;
+      }
+      case WSMethods.updateGame: {
+        updateGame(event);
+        console.log('game updated');
         break;
       }
       case WSMethods.setActiveIssue: {

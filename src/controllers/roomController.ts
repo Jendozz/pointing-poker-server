@@ -1,3 +1,4 @@
+import { IUpdateGameMessage } from './../types';
 import {
   IAddChatMessage,
   IChangeRouteMessage,
@@ -193,9 +194,20 @@ export function changeRoute(event: MessageEvent): void {
   const key = message.roomKey;
   if (ROOM_LIST[key]) {
     ROOM_LIST[key].route = message.data;
+    ROOM_LIST[key].game.activeIssueId = '';
   }
   broadCast(key, 'changeRoute', ROOM_LIST[key].route);
+  broadCast(key, 'updateGame', ROOM_LIST[key].game);
   clearTimer(key);
+}
+
+export function updateGame(event: MessageEvent): void {
+  const message: IUpdateGameMessage = JSON.parse(event.data.toString());
+  const key = message.roomKey;
+  if (ROOM_LIST[key]) {
+    ROOM_LIST[key].game = message.data;
+  }
+  broadCast(key, 'updateGame', ROOM_LIST[key].game);
 }
 
 export function setActiveIssue(event: MessageEvent): void {
@@ -204,17 +216,18 @@ export function setActiveIssue(event: MessageEvent): void {
   if (ROOM_LIST[key]) {
     if (!ROOM_LIST[key].game.activeIssueId) {
       ROOM_LIST[key].game.activeIssueId = ROOM_LIST[key].issues[0]?.id;
+      ROOM_LIST[key].game.cardsIsFlipped = false;
       clearTimer(key);
       startTimer(key);
     } else {
       const index = ROOM_LIST[key].issues.findIndex(issue => issue.id === ROOM_LIST[key].game.activeIssueId);
       if (!ROOM_LIST[key].issues[index + 1]) {
-        ROOM_LIST[key].route = 'result';
-        broadCast(key, 'changeRoute', ROOM_LIST[key].route);
+        ROOM_LIST[key].game.activeIssueId = '';
       } else {
         clearTimer(key);
         startTimer(key);
         ROOM_LIST[key].game.activeIssueId = ROOM_LIST[key].issues[index + 1]?.id;
+        ROOM_LIST[key].game.cardsIsFlipped = false;
       }
     }
   }
@@ -230,10 +243,22 @@ export function setVoice(event: MessageEvent): void {
   const votedIndex = ROOM_LIST[roomKey].game.vote[issueId].findIndex(vote => {
     return vote.userId === userId;
   });
+  const {
+    members,
+    game,
+    gameSettings: { flipCardsWhenAllVoted, ScrumMasterAsPlayer },
+  } = ROOM_LIST[roomKey];
   if (votedIndex == -1) {
-    ROOM_LIST[roomKey].game.vote[issueId].push({ userId: userId, voice: voice });
+    game.vote[issueId].push({ userId: userId, voice: voice });
+    if (
+      flipCardsWhenAllVoted &&
+      ((ScrumMasterAsPlayer && game.vote[issueId].length === members.length + 1) ||
+        (!ScrumMasterAsPlayer && game.vote[issueId].length === members.length))
+    ) {
+      game.cardsIsFlipped = true;
+    }
   } else {
-    ROOM_LIST[roomKey].game.vote[issueId][votedIndex].voice = voice;
+    game.vote[issueId][votedIndex].voice = voice;
   }
   broadCast(roomKey, 'updateGame', ROOM_LIST[roomKey].game);
 }
@@ -243,10 +268,15 @@ export function resetRound(event: MessageEvent): void {
     roomKey,
     data: { issueId },
   }: { roomKey: string; data: { issueId: string } } = JSON.parse(event.data.toString());
-  ROOM_LIST[roomKey].game.vote[issueId] = [];
+  if (ROOM_LIST[roomKey]) {
+    const { game } = ROOM_LIST[roomKey];
+    game.vote[issueId] = [];
+    game.remainingRoundTime = ROOM_LIST[roomKey].gameSettings.timer;
+    game.cardsIsFlipped = false;
+  }
   clearTimer(roomKey);
   startTimer(roomKey);
-  //broadCast(roomKey, 'updateGame', ROOM_LIST[roomKey].game);
+  broadCast(roomKey, 'updateGame', ROOM_LIST[roomKey].game);
 }
 
 export function addChatMessageToRoom(event: MessageEvent): void {

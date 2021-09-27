@@ -24,9 +24,6 @@ export function clearTimer(roomKey: string): void {
     clearInterval(INTERVAL_LIST[roomKey]);
     delete INTERVAL_LIST[roomKey];
   }
-  if (ROOM_LIST[roomKey]) {
-    ROOM_LIST[roomKey].game.remainingRoundTime = ROOM_LIST[roomKey].gameSettings.timer;
-  }
 }
 
 export function startTimer(roomKey: string): void {
@@ -38,6 +35,8 @@ export function startTimer(roomKey: string): void {
         ROOM_LIST[roomKey].game.remainingRoundTime = newTime;
         broadCast(roomKey, 'updateGame', ROOM_LIST[roomKey].game);
       } else {
+        ROOM_LIST[roomKey].game.cardsIsFlipped = true;
+        broadCast(roomKey, 'updateGame', ROOM_LIST[roomKey].game);
         clearTimer(roomKey);
       }
     }, 1000);
