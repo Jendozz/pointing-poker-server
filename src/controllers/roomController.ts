@@ -1,3 +1,4 @@
+import { IUpdateGameMessage } from './../types';
 import {
   IAddChatMessage,
   IChangeRouteMessage,
@@ -193,9 +194,20 @@ export function changeRoute(event: MessageEvent): void {
   const key = message.roomKey;
   if (ROOM_LIST[key]) {
     ROOM_LIST[key].route = message.data;
+    ROOM_LIST[key].game.activeIssueId = '';
   }
   broadCast(key, 'changeRoute', ROOM_LIST[key].route);
+  broadCast(key, 'updateGame', ROOM_LIST[key].game);
   clearTimer(key);
+}
+
+export function updateGame(event: MessageEvent): void {
+  const message: IUpdateGameMessage = JSON.parse(event.data.toString());
+  const key = message.roomKey;
+  if (ROOM_LIST[key]) {
+    ROOM_LIST[key].game = message.data;
+  }
+  broadCast(key, 'updateGame', ROOM_LIST[key].game);
 }
 
 export function setActiveIssue(event: MessageEvent): void {
@@ -204,17 +216,18 @@ export function setActiveIssue(event: MessageEvent): void {
   if (ROOM_LIST[key]) {
     if (!ROOM_LIST[key].game.activeIssueId) {
       ROOM_LIST[key].game.activeIssueId = ROOM_LIST[key].issues[0]?.id;
+      ROOM_LIST[key].game.cardsIsFlipped = false;
       clearTimer(key);
       startTimer(key);
     } else {
       const index = ROOM_LIST[key].issues.findIndex(issue => issue.id === ROOM_LIST[key].game.activeIssueId);
       if (!ROOM_LIST[key].issues[index + 1]) {
-        ROOM_LIST[key].route = 'result';
-        broadCast(key, 'changeRoute', ROOM_LIST[key].route);
+        ROOM_LIST[key].game.activeIssueId = '';
       } else {
         clearTimer(key);
         startTimer(key);
         ROOM_LIST[key].game.activeIssueId = ROOM_LIST[key].issues[index + 1]?.id;
+        ROOM_LIST[key].game.cardsIsFlipped = false;
       }
     }
   }
@@ -232,6 +245,15 @@ export function setVoice(event: MessageEvent): void {
   });
   if (votedIndex == -1) {
     ROOM_LIST[roomKey].game.vote[issueId].push({ userId: userId, voice: voice });
+    if (
+      ROOM_LIST[roomKey].gameSettings.flipCardsWhenAllVoted &&
+      ((ROOM_LIST[roomKey].gameSettings.ScrumMasterAsPlayer &&
+        ROOM_LIST[roomKey].game.vote[issueId].length === ROOM_LIST[roomKey].members.length + 1) ||
+        (!ROOM_LIST[roomKey].gameSettings.ScrumMasterAsPlayer &&
+          ROOM_LIST[roomKey].game.vote[issueId].length === ROOM_LIST[roomKey].members.length))
+    ) {
+      ROOM_LIST[roomKey].game.cardsIsFlipped = true;
+    }
   } else {
     ROOM_LIST[roomKey].game.vote[issueId][votedIndex].voice = voice;
   }
@@ -243,7 +265,11 @@ export function resetRound(event: MessageEvent): void {
     roomKey,
     data: { issueId },
   }: { roomKey: string; data: { issueId: string } } = JSON.parse(event.data.toString());
-  ROOM_LIST[roomKey].game.vote[issueId] = [];
+  if (ROOM_LIST[roomKey]) {
+    ROOM_LIST[roomKey].game.vote[issueId] = [];
+    ROOM_LIST[roomKey].game.remainingRoundTime = ROOM_LIST[roomKey].gameSettings.timer;
+    ROOM_LIST[roomKey].game.cardsIsFlipped = false;
+  }
   clearTimer(roomKey);
   startTimer(roomKey);
   //broadCast(roomKey, 'updateGame', ROOM_LIST[roomKey].game);

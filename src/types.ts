@@ -62,6 +62,7 @@ export interface IRoom {
     activeIssueId: string;
     vote: { [key: string]: { userId: string; voice: number }[] };
     remainingRoundTime: string;
+    cardsIsFlipped: boolean;
   };
   chatMessages: IChatMessage[];
 }
@@ -118,4 +119,13 @@ export interface IChangeRouteMessage extends IMesssage {
 }
 export interface IAddChatMessage extends IMesssage {
   data: IChatMessage;
+}
+
+export interface IUpdateGameMessage extends IMesssage {
+  data: {
+    activeIssueId: string;
+    vote: { [key: string]: { userId: string; voice: number }[] };
+    remainingRoundTime: string;
+    cardsIsFlipped: boolean;
+  };
 }
