@@ -222,7 +222,9 @@ export function setActiveIssue(event: MessageEvent): void {
     } else {
       const index = ROOM_LIST[key].issues.findIndex(issue => issue.id === ROOM_LIST[key].game.activeIssueId);
       if (!ROOM_LIST[key].issues[index + 1]) {
+        clearTimer(key);
         ROOM_LIST[key].game.activeIssueId = '';
+        ROOM_LIST[key].game.remainingRoundTime = '00:00';
       } else {
         clearTimer(key);
         startTimer(key);
