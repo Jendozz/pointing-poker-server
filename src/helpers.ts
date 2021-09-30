@@ -48,3 +48,18 @@ export function RemoveRoomFromConnections(connections: Set<ExtWebSocket>, id: st
     }
   });
 }
+
+export function getExtFromFileName(name: string): string {
+  const arr = name.split('.');
+  return arr[arr.length - 1];
+}
+
+export function findAvatarById(list: string[], id: string): string {
+  let result = '';
+  list.forEach(el => {
+    if (el.includes(id)) {
+      result = el;
+    }
+  });
+  return result;
+}
