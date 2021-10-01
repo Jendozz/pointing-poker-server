@@ -1,7 +1,7 @@
+import path from 'path';
 import { ExtWebSocket, ExtServer, IErrorMessage } from './types';
 import { WSMethods } from './constants';
 import express from 'express';
-import { Request, Response } from 'express';
 import cors from 'cors';
 import http from 'http';
 import WebSocket from 'ws';
@@ -33,9 +33,13 @@ const server = http.createServer(app);
 export const wss: ExtServer = new WebSocket.Server({ server });
 wss.connections = new Set<ExtWebSocket>();
 
+const router = require('./router');
+
+app.use(express.static(path.resolve(__dirname, '../public')));
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use('/', router);
 
 wss.on('connection', (ws: ExtWebSocket) => {
   ws.onmessage = (event: MessageEvent) => {
@@ -145,13 +149,6 @@ wss.on('connection', (ws: ExtWebSocket) => {
     disconnectHandler(ws, wss);
     console.log(`User ${ws.userid} disconnected`);
   });
-});
-
-app.post('/checkRoom', (req: Request, res: Response): void => {
-  const data = JSON.parse(JSON.stringify(req.body));
-  if (Object.prototype.hasOwnProperty.call(ROOM_LIST, data.roomKey)) {
-    res.status(200).send();
-  } else res.status(404).send();
 });
 
 server.listen(PORT, () => {

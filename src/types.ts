@@ -1,6 +1,7 @@
 import { WSMethods } from './constants';
 
 import WebSocket, { Server } from 'ws';
+import { Readable } from 'stream';
 
 export interface ExtWebSocket extends WebSocket {
   id: string;
@@ -9,6 +10,24 @@ export interface ExtWebSocket extends WebSocket {
 
 export interface ExtServer extends Server {
   connections?: Set<ExtWebSocket>;
+}
+
+export interface MulterRequest extends Express.Request {
+  body: {
+    userId: string;
+  };
+  file: {
+    fieldname: string;
+    originalname: string;
+    encoding: string;
+    mimetype: string;
+    buffer: Buffer;
+    size: number;
+    stream: Readable;
+    destination: string;
+    filename: string;
+    path: string;
+  };
 }
 
 export interface IUser {
@@ -68,7 +87,9 @@ export interface IRoom {
 }
 
 export interface IChatMessage {
-  user: IUser;
+  userid: string;
+  userName: string;
+  urlToAvatar: string;
   message: string;
   date: number;
 }
