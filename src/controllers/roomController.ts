@@ -110,17 +110,20 @@ export function askForJoinMember(event: MessageEvent, ws: ExtWebSocket, wss: Ext
   }
 }
 
-export function removeMemberFromRoom(event: MessageEvent): void {
+export function removeMemberFromRoom(event: MessageEvent, wss: ExtServer): void {
   const message: IAddMemberToRoomMessage = JSON.parse(event.data.toString());
   const key = message.roomKey;
   if (ROOM_LIST[key]) {
     ROOM_LIST[key].members = ROOM_LIST[key].members.filter(member => member.id !== message.data.id);
     broadCast(key, 'addMember', ROOM_LIST[key].members);
     broadCast(key, 'removeMember', message.data.id);
+    if (wss.connections) {
+      RemoveWSFromConnections(wss.connections, message.data.id);
+    }
   }
 }
 
-export function startKickVoting(event: MessageEvent): void {
+export function startKickVoting(event: MessageEvent, wss: ExtServer): void {
   const message: IAddMemberToRoomMessage = JSON.parse(event.data.toString());
   const key = message.roomKey;
   const voteID = `${key}-${message.data.id}`;
@@ -130,7 +133,7 @@ export function startKickVoting(event: MessageEvent): void {
       const index = KICK_VOTING_LIST.findIndex(voting => voting.id === voteID);
       const verdict = resolveVoting(key, voteID);
       if (verdict) {
-        removeMemberFromRoom(event);
+        removeMemberFromRoom(event, wss);
         KICK_VOTING_LIST[index].isEnded = true;
       }
       if (deleteVoting) {
