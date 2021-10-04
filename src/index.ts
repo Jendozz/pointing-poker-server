@@ -68,12 +68,12 @@ wss.on('connection', (ws: ExtWebSocket) => {
         break;
       }
       case WSMethods.removeMember: {
-        removeMemberFromRoom(event);
+        removeMemberFromRoom(event, wss);
         console.log('member removed');
         break;
       }
       case WSMethods.startKickUserVoting: {
-        startKickVoting(event);
+        startKickVoting(event, wss);
         console.log('start voting');
         break;
       }
