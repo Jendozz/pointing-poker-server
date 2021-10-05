@@ -13,7 +13,7 @@ import {
 } from '../types';
 import { MessageEvent } from 'ws';
 import { ROOM_LIST, KICK_VOTING_LIST } from '../storage';
-import { broadCast } from './broadCastController';
+import { broadCast, sendNotification } from './broadCastController';
 import {
   createRoomOnClient,
   createRouteMessage,
@@ -51,6 +51,7 @@ export function removeRoom(event: MessageEvent): void {
     broadCast(key, 'removeRoom', {});
     clearTimer(key);
   }
+  sendNotification(key, 'room was succesful removed`', 'success');
 }
 
 export function addMemberToRoom(event: MessageEvent, ws: ExtWebSocket, wss: ExtServer): void {
@@ -62,9 +63,13 @@ export function addMemberToRoom(event: MessageEvent, ws: ExtWebSocket, wss: ExtS
   if (ROOM_LIST[key]) {
     ROOM_LIST[key].members.push(message.data);
     broadCast(key, 'addMember', ROOM_LIST[key].members);
+    broadCast(key, 'showNotification', {
+      text: `${message.data.firstName + ' ' + message.data.lastName} connected`,
+      isOpen: true,
+      severity: 'info',
+    });
   }
 }
-
 function waitAnswerFromScrumMaster(
   ws: ExtWebSocket,
   connection: ExtWebSocket,
@@ -117,6 +122,8 @@ export function removeMemberFromRoom(event: MessageEvent, wss: ExtServer): void 
     ROOM_LIST[key].members = ROOM_LIST[key].members.filter(member => member.id !== message.data.id);
     broadCast(key, 'addMember', ROOM_LIST[key].members);
     broadCast(key, 'removeMember', message.data.id);
+    sendNotification(key, `${message.data.firstName} left room`, 'info');
+    sendNotification(key, 'you were disconnected from the room', 'error', message.data.id);
     if (wss.connections) {
       RemoveWSFromConnections(wss.connections, message.data.id);
     }
@@ -265,6 +272,7 @@ export function setVoice(event: MessageEvent): void {
   } else {
     game.vote[issueId][votedIndex].voice = voice;
   }
+  sendNotification(roomKey, 'your estimate has been successfully saved', 'success', userId);
   broadCast(roomKey, 'updateGame', ROOM_LIST[roomKey].game);
 }
 
@@ -282,6 +290,7 @@ export function resetRound(event: MessageEvent): void {
   clearTimer(roomKey);
   startTimer(roomKey);
   broadCast(roomKey, 'updateGame', ROOM_LIST[roomKey].game);
+  sendNotification(roomKey, 'Round was reseted', 'warning');
 }
 
 export function addChatMessageToRoom(event: MessageEvent): void {

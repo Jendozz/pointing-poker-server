@@ -23,6 +23,7 @@ export const WSMethods = {
   connectToRoom: 'connectToRoom',
   addChatMessage: 'addChatMessage',
   reconnect: 'reconnect',
+  showNotification: 'showNotification',
 };
 
 export const VOTING_DELAY = 15000;
