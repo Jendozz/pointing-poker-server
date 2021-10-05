@@ -19,3 +19,25 @@ export function broadCast<T>(roomKey: string, method: keyof typeof WSMethods, da
     broadCastMessage(wss.connections, roomKey, JSON.stringify(message));
   }
 }
+
+export function sendNotification(roomKey: string, text: string, severity: string, userId?: string): void {
+  if (wss.connections) {
+    const message = {
+      method: 'showNotification',
+      data: {
+        text: text,
+        isOpen: true,
+        severity: severity,
+      },
+    };
+    if (userId) {
+      wss.connections.forEach(connection => {
+        if (connection.id === roomKey && connection.userid === userId) {
+          connection.send(JSON.stringify(message));
+        }
+      });
+    } else {
+      broadCastMessage(wss.connections, roomKey, JSON.stringify(message));
+    }
+  }
+}
