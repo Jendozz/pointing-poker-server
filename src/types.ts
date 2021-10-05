@@ -44,6 +44,7 @@ export interface IIssue {
   title: string;
   priority: string;
   link: string;
+  finalScore: string;
 }
 
 export interface IGameSettings {
@@ -68,6 +69,12 @@ export enum Routes {
   lobby = 'lobby',
   game = 'game',
   result = 'result',
+}
+
+export enum GameRole {
+  scrumMaster = 'scrumMaster',
+  player = 'player',
+  observer = 'observer',
 }
 
 export interface IRoom {
