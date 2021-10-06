@@ -115,11 +115,21 @@ export function askForJoinMember(event: MessageEvent, ws: ExtWebSocket, wss: Ext
   }
 }
 
+export function removeMemberVotes(roomKey: string, memberID: string): void {
+  const { game } = ROOM_LIST[roomKey];
+  const issues = Object.keys(game.vote);
+  issues.forEach(issueId => {
+    game.vote[issueId] = game.vote[issueId].filter(userVoice => userVoice.userId !== memberID);
+  });
+  broadCast(roomKey, 'updateGame', ROOM_LIST[roomKey].game);
+}
+
 export function removeMemberFromRoom(event: MessageEvent, wss: ExtServer): void {
   const message: IAddMemberToRoomMessage = JSON.parse(event.data.toString());
   const key = message.roomKey;
   if (ROOM_LIST[key]) {
     ROOM_LIST[key].members = ROOM_LIST[key].members.filter(member => member.id !== message.data.id);
+    removeMemberVotes(key, message.data.id);
     broadCast(key, 'addMember', ROOM_LIST[key].members);
     broadCast(key, 'removeMember', message.data.id);
     sendNotification(key, `${message.data.firstName} left the room`, 'info');
