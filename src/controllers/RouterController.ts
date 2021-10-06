@@ -18,15 +18,13 @@ export async function uploadAvatar(req: MulterRequest, res: Response): Promise<v
     body: { userId },
   } = req;
   const ext = getExtFromFileName(originalname);
-  if (/'jpg' || 'png' || 'svg' || 'jpeg' || 'gif'/.test(ext)) {
-    fs.writeFile(path.resolve(__dirname, `../../public/avatars/${userId}.${ext}`), buffer, 'ascii', err => {
-      if (err) {
-        res.status(400).json({ Error: err });
-      } else {
-        res.status(200).json({ result: `avatars/${userId}.${ext}` });
-      }
-    });
-  } else res.status(415).json({ error: 'Picture format is invalid' });
+  fs.writeFile(path.resolve(__dirname, `../../public/avatars/${userId}.${ext}`), buffer, 'ascii', err => {
+    if (err) {
+      res.status(500).json({ Error: err });
+    } else {
+      res.status(200).json({ result: `avatars/${userId}.${ext}` });
+    }
+  });
 }
 
 export async function deleteAvatar(req: Request): Promise<void> {

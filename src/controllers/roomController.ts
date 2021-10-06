@@ -1,4 +1,4 @@
-import { IUpdateGameMessage } from './../types';
+import { IUpdateGameMessage, GameRole } from './../types';
 import {
   IAddChatMessage,
   IChangeRouteMessage,
@@ -51,7 +51,7 @@ export function removeRoom(event: MessageEvent): void {
     broadCast(key, 'removeRoom', {});
     clearTimer(key);
   }
-  sendNotification(key, 'room was succesful removed`', 'success');
+  sendNotification(key, 'room was succesfuly removed', 'success');
 }
 
 export function addMemberToRoom(event: MessageEvent, ws: ExtWebSocket, wss: ExtServer): void {
@@ -122,7 +122,7 @@ export function removeMemberFromRoom(event: MessageEvent, wss: ExtServer): void 
     ROOM_LIST[key].members = ROOM_LIST[key].members.filter(member => member.id !== message.data.id);
     broadCast(key, 'addMember', ROOM_LIST[key].members);
     broadCast(key, 'removeMember', message.data.id);
-    sendNotification(key, `${message.data.firstName} left room`, 'info');
+    sendNotification(key, `${message.data.firstName} left the room`, 'info');
     sendNotification(key, 'you were disconnected from the room', 'error', message.data.id);
     if (wss.connections) {
       RemoveWSFromConnections(wss.connections, message.data.id);
@@ -233,8 +233,8 @@ export function setActiveIssue(event: MessageEvent): void {
       const index = ROOM_LIST[key].issues.findIndex(issue => issue.id === ROOM_LIST[key].game.activeIssueId);
       if (!ROOM_LIST[key].issues[index + 1]) {
         clearTimer(key);
-        ROOM_LIST[key].game.activeIssueId = '';
         ROOM_LIST[key].game.remainingRoundTime = '00:00';
+        sendNotification(key, 'no issues left', 'error');
       } else {
         clearTimer(key);
         startTimer(key);
@@ -260,19 +260,20 @@ export function setVoice(event: MessageEvent): void {
     game,
     gameSettings: { flipCardsWhenAllVoted, ScrumMasterAsPlayer },
   } = ROOM_LIST[roomKey];
+  const actualPlayers = members.filter(member => member.role === GameRole.player);
   if (votedIndex == -1) {
     game.vote[issueId].push({ userId: userId, voice: voice });
     if (
       flipCardsWhenAllVoted &&
-      ((ScrumMasterAsPlayer && game.vote[issueId].length === members.length + 1) ||
-        (!ScrumMasterAsPlayer && game.vote[issueId].length === members.length))
+      ((ScrumMasterAsPlayer && game.vote[issueId].length === actualPlayers.length + 1) ||
+        (!ScrumMasterAsPlayer && game.vote[issueId].length === actualPlayers.length))
     ) {
       game.cardsIsFlipped = true;
     }
   } else {
     game.vote[issueId][votedIndex].voice = voice;
   }
-  sendNotification(roomKey, 'your estimate has been successfully saved', 'success', userId);
+  sendNotification(roomKey, 'your vote has been successfully taken into account', 'success', userId);
   broadCast(roomKey, 'updateGame', ROOM_LIST[roomKey].game);
 }
 
@@ -290,7 +291,7 @@ export function resetRound(event: MessageEvent): void {
   clearTimer(roomKey);
   startTimer(roomKey);
   broadCast(roomKey, 'updateGame', ROOM_LIST[roomKey].game);
-  sendNotification(roomKey, 'Round was reseted', 'warning');
+  sendNotification(roomKey, 'Round was reset', 'warning');
 }
 
 export function addChatMessageToRoom(event: MessageEvent): void {
